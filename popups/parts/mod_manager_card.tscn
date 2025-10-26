@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://bv0k48h4qxiw3"]
+
+[ext_resource type="Texture2D" uid="uid://cuec80v8csq88" path="res://assets/sprites/ui/buttons/add-card.png" id="1_8hccg"]
+[ext_resource type="Script" uid="uid://b3816c7anmm0t" path="res://source/mod-manager/popups/parts/mod_manager_card.gd" id="2_osumq"]
+
+[node name="ModManagerCard" type="TextureRect"]
+custom_minimum_size = Vector2(0, 150)
+texture = ExtResource("1_8hccg")
+expand_mode = 3
+stretch_mode = 5
+script = ExtResource("2_osumq")

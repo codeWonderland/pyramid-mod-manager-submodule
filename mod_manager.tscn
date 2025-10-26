@@ -1,11 +1,13 @@
-[gd_scene load_steps=7 format=3 uid="uid://dj5xqda8vfotj"]
+[gd_scene load_steps=9 format=3 uid="uid://dj5xqda8vfotj"]
 
 [ext_resource type="Texture2D" uid="uid://277dathaiayc" path="res://assets/sprites/ui/buttons/back_button.png" id="1_023ql"]
 [ext_resource type="Script" uid="uid://cmcna5voq7s0r" path="res://source/mod-manager/mod_manager.gd" id="1_at8ec"]
 [ext_resource type="Texture2D" uid="uid://b0jxalgy3k3hn" path="res://assets/sprites/ui/buttons/plus.png" id="2_at8ec"]
+[ext_resource type="PackedScene" uid="uid://ctf5sb112jkcq" path="res://source/menus/main_menu.tscn" id="2_uwe2b"]
 [ext_resource type="Texture2D" uid="uid://u52jchngj51e" path="res://assets/sprites/ui/background.png" id="2_yqerp"]
 [ext_resource type="Texture2D" uid="uid://bn66n0lxbqc7p" path="res://assets/sprites/ui/buttons/edit.png" id="3_yqerp"]
 [ext_resource type="Texture2D" uid="uid://wjrf2gawpduc" path="res://assets/sprites/ui/buttons/trash.png" id="4_cfuo8"]
+[ext_resource type="PackedScene" uid="uid://byw4ht4wyy1h" path="res://source/mod-manager/popups/pack_editor.tscn" id="7_cfuo8"]
 
 [node name="ModManager" type="Control"]
 layout_mode = 3
@@ -17,6 +19,7 @@ grow_vertical = 2
 script = ExtResource("1_at8ec")
 title = "Mod Manager"
 mods_path = "user://mods/local/PACKS/"
+scene_to_return_to = ExtResource("2_uwe2b")
 
 [node name="Background" type="TextureRect" parent="."]
 unique_name_in_owner = true
@@ -113,3 +116,8 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+
+[node name="PackEditor" parent="." instance=ExtResource("7_cfuo8")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0

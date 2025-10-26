@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://byw4ht4wyy1h"]
+[gd_scene load_steps=5 format=3 uid="uid://byw4ht4wyy1h"]
 
 [ext_resource type="Script" uid="uid://cc7fenq3ur3x7" path="res://source/mod-manager/popups/pack_editor.gd" id="1_jtss8"]
 [ext_resource type="Texture2D" uid="uid://lh3dna1fipe" path="res://assets/sprites/ui/icons/close.png" id="1_yqagw"]
-[ext_resource type="Texture2D" uid="uid://cuec80v8csq88" path="res://assets/sprites/ui/buttons/add-card.png" id="2_2pwod"]
+[ext_resource type="PackedScene" uid="uid://bv0k48h4qxiw3" path="res://source/mod-manager/popups/parts/mod_manager_card.tscn" id="2_2pwod"]
+[ext_resource type="PackedScene" uid="uid://doj1fyyy4vogu" path="res://source/mod-manager/popups/confirm_delete.tscn" id="4_00be5"]
 
 [node name="PackEditor" type="PanelContainer"]
 custom_minimum_size = Vector2(650, 0)
@@ -28,13 +29,16 @@ layout_mode = 2
 theme_type_variation = &"SmallLabel"
 text = "Pack Name"
 
-[node name="LineEdit" type="LineEdit" parent="VBoxContainer/VBoxContainer"]
+[node name="PackNameLineEdit" type="LineEdit" parent="VBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "Enter Pack Name"
+emoji_menu_enabled = false
 
 [node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
 custom_minimum_size = Vector2(0, 300)
 layout_mode = 2
+size_flags_vertical = 3
 
 [node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/ScrollContainer"]
 layout_mode = 2
@@ -53,16 +57,15 @@ custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 vertical_scroll_mode = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer2/ScrollContainer"]
+[node name="CardBacks" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer2/ScrollContainer"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="TextureRect" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer2/ScrollContainer/HBoxContainer"]
+[node name="AddCardBack" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer2/ScrollContainer/CardBacks" instance=ExtResource("2_2pwod")]
+unique_name_in_owner = true
 layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
 
 [node name="VBoxContainer3" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
@@ -77,40 +80,15 @@ custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 vertical_scroll_mode = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer3/ScrollContainer"]
+[node name="PrimaryCards" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer3/ScrollContainer"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="TextureRect" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer3/ScrollContainer/HBoxContainer"]
+[node name="AddPrimaryCard" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer3/ScrollContainer/PrimaryCards" instance=ExtResource("2_2pwod")]
+unique_name_in_owner = true
 layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
-
-[node name="TextureRect2" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer3/ScrollContainer/HBoxContainer"]
-layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
-
-[node name="TextureRect3" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer3/ScrollContainer/HBoxContainer"]
-layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
-
-[node name="TextureRect4" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer3/ScrollContainer/HBoxContainer"]
-layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
-
-[node name="TextureRect5" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer3/ScrollContainer/HBoxContainer"]
-layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
 
 [node name="VBoxContainer4" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
@@ -125,64 +103,15 @@ custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 vertical_scroll_mode = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer4/ScrollContainer"]
+[node name="SecondaryCards" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer4/ScrollContainer"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="TextureRect" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer4/ScrollContainer/HBoxContainer"]
+[node name="AddSecondaryCard" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer4/ScrollContainer/SecondaryCards" instance=ExtResource("2_2pwod")]
+unique_name_in_owner = true
 layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
-
-[node name="TextureRect2" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer4/ScrollContainer/HBoxContainer"]
-layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
-
-[node name="TextureRect3" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer4/ScrollContainer/HBoxContainer"]
-layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
-
-[node name="TextureRect4" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer4/ScrollContainer/HBoxContainer"]
-layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
-
-[node name="TextureRect5" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer4/ScrollContainer/HBoxContainer"]
-layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
-
-[node name="TextureRect6" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer4/ScrollContainer/HBoxContainer"]
-layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
-
-[node name="TextureRect7" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer4/ScrollContainer/HBoxContainer"]
-layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
-
-[node name="TextureRect8" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer4/ScrollContainer/HBoxContainer"]
-layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
-
-[node name="TextureRect9" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer4/ScrollContainer/HBoxContainer"]
-layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
 
 [node name="VBoxContainer5" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
@@ -197,22 +126,15 @@ custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 vertical_scroll_mode = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer5/ScrollContainer"]
+[node name="CurseCards" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer5/ScrollContainer"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="TextureRect" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer5/ScrollContainer/HBoxContainer"]
+[node name="AddCurseCard" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer5/ScrollContainer/CurseCards" instance=ExtResource("2_2pwod")]
+unique_name_in_owner = true
 layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
-
-[node name="TextureRect2" type="TextureRect" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer5/ScrollContainer/HBoxContainer"]
-layout_mode = 2
-texture = ExtResource("2_2pwod")
-expand_mode = 3
-stretch_mode = 5
 
 [node name="Save" type="Button" parent="VBoxContainer"]
 unique_name_in_owner = true
@@ -225,3 +147,17 @@ layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 0
 texture_normal = ExtResource("1_yqagw")
+
+[node name="FileDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Open a File"
+ok_button_text = "Select"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.png,*.jpg,*.jpeg;Image Files;image/png,image/jpeg")
+use_native_dialog = true
+
+[node name="ConfirmDelete" parent="." instance=ExtResource("4_00be5")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
