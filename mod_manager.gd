@@ -14,6 +14,7 @@ var _selected_pack: PackData = null
 @onready var _edit_mod_button: TextureButton = %EditMod
 @onready var _delete_mod_button: TextureButton = %DeleteMod
 @onready var _pack_editor: PackEditor = %PackEditor
+@onready var _confirm_delete: ConfirmDelete = %ConfirmDelete
 
 
 func _ready() -> void:
@@ -28,6 +29,9 @@ func _ready() -> void:
 	_delete_mod_button.pressed.connect(_delete_mod)
 
 	_pack_editor.save_validated.connect(_on_pack_saved)
+
+	_confirm_delete.set_title("Are you sure you want to delete this mod?")
+	_confirm_delete.confirm_delete.connect(_on_delete_mod_confirmed)
 
 	if scene_to_return_to != null:
 		_back_button.pressed.connect(_leave_mod_manager)
@@ -52,14 +56,14 @@ func _clear_packs() -> void:
 
 
 func _select_pack(pack_data: PackData) -> void:
-	if _pack_editor.visible:
+	if _pack_editor.visible or _confirm_delete.visible:
 		return
 
 	_selected_pack = pack_data
 
 
 func _add_mod() -> void:
-	if _pack_editor.visible:
+	if _pack_editor.visible or _confirm_delete.visible:
 		return
 
 	_pack_editor.pack_data = null
@@ -67,7 +71,7 @@ func _add_mod() -> void:
 
 
 func _edit_mod() -> void:
-	if _pack_editor.visible or _selected_pack == null:
+	if _pack_editor.visible or _confirm_delete.visible or _selected_pack == null:
 		return
 
 	_pack_editor.pack_data = _selected_pack
@@ -75,9 +79,14 @@ func _edit_mod() -> void:
 
 
 func _delete_mod() -> void:
-	if _pack_editor.visible or _selected_pack == null:
+	if _pack_editor.visible or _confirm_delete.visible or _selected_pack == null:
 		return
 
+	_confirm_delete.set_card_texture(_selected_pack.backs[0])
+	_confirm_delete.show()
+
+
+func _on_delete_mod_confirmed() -> void:
 	var pack_dir = DirAccess.open(_selected_pack.folder_path)
 	Helpers.delete_recursive(pack_dir)
 
@@ -166,4 +175,7 @@ func _save_image(card: ImageTexture, file_path: String) -> void:
 
 
 func _leave_mod_manager() -> void:
+	if _pack_editor.visible or _confirm_delete.visible:
+		return
+
 	get_tree().change_scene_to_packed(scene_to_return_to)

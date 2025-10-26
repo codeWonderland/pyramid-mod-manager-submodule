@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://dj5xqda8vfotj"]
+[gd_scene load_steps=10 format=3 uid="uid://dj5xqda8vfotj"]
 
 [ext_resource type="Texture2D" uid="uid://277dathaiayc" path="res://assets/sprites/ui/buttons/back_button.png" id="1_023ql"]
 [ext_resource type="Script" uid="uid://cmcna5voq7s0r" path="res://source/mod-manager/mod_manager.gd" id="1_at8ec"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://bn66n0lxbqc7p" path="res://assets/sprites/ui/buttons/edit.png" id="3_yqerp"]
 [ext_resource type="Texture2D" uid="uid://wjrf2gawpduc" path="res://assets/sprites/ui/buttons/trash.png" id="4_cfuo8"]
 [ext_resource type="PackedScene" uid="uid://byw4ht4wyy1h" path="res://source/mod-manager/popups/pack_editor.tscn" id="7_cfuo8"]
+[ext_resource type="PackedScene" uid="uid://doj1fyyy4vogu" path="res://source/mod-manager/popups/confirm_delete.tscn" id="9_8cy8g"]
 
 [node name="ModManager" type="Control"]
 layout_mode = 3
@@ -118,6 +119,12 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="PackEditor" parent="." instance=ExtResource("7_cfuo8")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_right = 650.0
+
+[node name="ConfirmDelete" parent="." instance=ExtResource("9_8cy8g")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
