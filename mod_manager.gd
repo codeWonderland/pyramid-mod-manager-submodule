@@ -88,10 +88,12 @@ func _delete_mod() -> void:
 
 func _on_delete_mod_confirmed() -> void:
 	var pack_dir = DirAccess.open(_selected_pack.folder_path)
-	Helpers.delete_recursive(pack_dir)
+	if pack_dir:
+		Helpers.delete_recursive(pack_dir)
 
 	var pack_index = _packs.find(_selected_pack)
-	_packs.remove_at(pack_index)
+	if pack_index != -1:
+		_packs.remove_at(pack_index)
 
 	for mod in _mods_list.get_children():
 		if mod.text == _selected_pack.title:
@@ -102,16 +104,20 @@ func _on_delete_mod_confirmed() -> void:
 
 
 func _on_pack_saved(pack_data: PackData) -> void:
-	var existing_pack_index = -1
-	if pack_data.folder_path != "":
-		_delete_mod()
+	# When editing, the same PackData instance is handed back to us, so we can
+	# locate its existing slot by identity. New packs have an empty folder_path.
+	var existing_pack_index := _packs.find(pack_data)
+	var old_folder_path := pack_data.folder_path
+	var new_folder_path := mods_path.path_join(pack_data.title)
 
-		var index = 0
-		for pack in _packs:
-			if pack.folder_path == pack_data.folder_path:
-				existing_pack_index = index
+	# If an edit renamed the pack, its folder moves too; remove the stale folder
+	# so we don't leave an orphaned copy behind.
+	if old_folder_path != "" and old_folder_path != new_folder_path:
+		var old_dir = DirAccess.open(old_folder_path)
+		if old_dir:
+			Helpers.delete_recursive(old_dir)
 
-	pack_data.folder_path = mods_path + pack_data.title
+	pack_data.folder_path = new_folder_path
 
 	if existing_pack_index != -1:
 		_packs[existing_pack_index] = pack_data
@@ -130,6 +136,15 @@ func _on_pack_saved(pack_data: PackData) -> void:
 
 func _save_mod(pack_data: PackData) -> void:
 	var mods_dir = DirAccess.open(mods_path)
+	if mods_dir == null:
+		push_error("ModManager: couldn't open mods path %s" % mods_path)
+		return
+
+	# Recreate the pack folder from scratch so removed cards (or a lower card
+	# count after an edit) don't leave stale higher-index images behind.
+	var existing = DirAccess.open(pack_data.folder_path)
+	if existing:
+		Helpers.delete_recursive(existing)
 	mods_dir.make_dir_recursive(pack_data.title)
 
 	var index = 1
