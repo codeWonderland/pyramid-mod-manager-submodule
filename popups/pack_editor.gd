@@ -125,6 +125,10 @@ func _on_file_selected(
 	_file_dialog.file_selected.disconnect(_on_file_selected.bind(container, add_button))
 
 	var image: Image = Image.load_from_file(file_path)
+	if image == null:
+		push_warning("PackEditor: couldn't load selected image %s" % file_path)
+		return
+
 	var texture: ImageTexture = ImageTexture.create_from_image(image)
 
 	_add_mod_manager_card(container, add_button, texture)
