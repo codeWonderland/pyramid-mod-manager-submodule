@@ -1,0 +1,50 @@
+name: run checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install git+https://github.com/Scony/godot-gdscript-toolkit.git
+
+      - name: Check formatting
+        run: gdformat --check --diff .
+
+      - name: Run gdlint
+        run: gdlint .
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Godot
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.6.3
+          use-dotnet: false
+          include-templates: false
+
+      # Builds a throwaway standalone project from the self-contained scripts
+      # and runs the GUT unit tests (see ci/run_tests.sh for why).
+      - name: Run unit tests
+        run: bash ci/run_tests.sh
