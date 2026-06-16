@@ -24,6 +24,10 @@ static func load_pack_from_path(pack_path: String) -> PackData:
 				continue
 
 			var image: Image = Image.load_from_file(pack_data.folder_path + "/" + file_path)
+			if image == null:
+				push_warning("PackDataLoader: couldn't load image %s" % file_path)
+				continue
+
 			var texture: ImageTexture = ImageTexture.create_from_image(image)
 
 			if file_path.begins_with("b"):
