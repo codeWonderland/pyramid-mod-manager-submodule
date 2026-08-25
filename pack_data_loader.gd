@@ -80,6 +80,32 @@ static func sort_packs(a: PackData, b: PackData) -> bool:
 	return a.title < b.title
 
 
+## Writes a pack's tags to its metadata file, and deletes that file when there
+## are no tags left, so a pack whose tags were all removed reads back as
+## untagged rather than keeping an empty metadata file around.
+static func save_tags(pack_folder_path: String, tags: Array[String]) -> bool:
+	var metadata_path := pack_folder_path.path_join(METADATA_FILE)
+
+	if tags.is_empty():
+		if FileAccess.file_exists(metadata_path):
+			DirAccess.remove_absolute(metadata_path)
+		return true
+
+	var file = FileAccess.open(metadata_path, FileAccess.WRITE)
+	if file == null:
+		push_error(
+			(
+				"PackDataLoader: couldn't write %s (error %d)"
+				% [metadata_path, FileAccess.get_open_error()]
+			)
+		)
+		return false
+
+	file.store_string(JSON.stringify({"tags": tags}, "\t"))
+	file.close()
+	return true
+
+
 ## Reads the tag list out of a pack's metadata file. Mod data is user-supplied,
 ## so every step here warns and falls back to "no tags" rather than failing the
 ## pack: a broken metadata file must never stop a pack from loading.
