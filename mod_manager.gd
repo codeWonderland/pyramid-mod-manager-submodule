@@ -147,45 +147,26 @@ func _save_mod(pack_data: PackData) -> void:
 		Helpers.delete_recursive(existing)
 	mods_dir.make_dir_recursive(pack_data.title)
 
-	var index = 1
-	for card in pack_data.backs:
-		_save_image(
-			card,
-			("{folder_path}/b{index}.png").format(
-				{folder_path = pack_data.folder_path, index = index}
-			)
-		)
-
-	index = 1
-	for card in pack_data.primaries:
-		_save_image(
-			card,
-			("{folder_path}/p{index}.png").format(
-				{folder_path = pack_data.folder_path, index = index}
-			)
-		)
-
-	index = 1
-	for card in pack_data.secondaries:
-		_save_image(
-			card,
-			("{folder_path}/s{index}.png").format(
-				{folder_path = pack_data.folder_path, index = index}
-			)
-		)
-
-	index = 1
-	for card in pack_data.curses:
-		_save_image(
-			card,
-			("{folder_path}/c{index}.png").format(
-				{folder_path = pack_data.folder_path, index = index}
-			)
-		)
+	# Prefixes are what PackDataLoader classifies cards by when reading a pack.
+	_save_cards(pack_data.backs, "b", pack_data.folder_path)
+	_save_cards(pack_data.primaries, "p", pack_data.folder_path)
+	_save_cards(pack_data.secondaries, "s", pack_data.folder_path)
+	_save_cards(pack_data.curses, "c", pack_data.folder_path)
 
 	# The folder was recreated from scratch above, so clearing every tag simply
 	# leaves no metadata file behind.
 	PackDataLoader.save_tags(pack_data.folder_path, pack_data.tags)
+
+
+## Writes one numbered image per card, 1-based, so a pack with three primaries
+## gets p1/p2/p3. Each category previously had its own copy of this loop with a
+## counter it never advanced, so every card overwrote the same file and only the
+## last one survived; one shared helper keeps that from drifting back.
+func _save_cards(cards: Array[ImageTexture], prefix: String, folder_path: String) -> void:
+	var index := 1
+	for card in cards:
+		_save_image(card, "%s/%s%d.png" % [folder_path, prefix, index])
+		index += 1
 
 
 func _save_image(card: ImageTexture, file_path: String) -> void:
