@@ -40,6 +40,9 @@ var _file_name_regex: RegEx
 @onready var _add_secondary_card_button: ModManagerCard = %AddSecondaryCard
 @onready var _curse_cards: HBoxContainer = %CurseCards
 @onready var _add_curse_card_button: ModManagerCard = %AddCurseCard
+@onready var _tag_line_edit: LineEdit = %TagLineEdit
+@onready var _add_tag_button: Button = %AddTag
+@onready var _tag_list: HFlowContainer = %TagList
 @onready var _file_dialog: FileDialog = %FileDialog
 @onready var _confirm_delete: ConfirmDelete = %ConfirmDelete
 @onready var _save_button: Button = %Save
@@ -66,6 +69,10 @@ func _ready() -> void:
 	_add_curse_card_button.pressed.connect(
 		_select_new_card.bind(_curse_cards, _add_curse_card_button)
 	)
+
+	_add_tag_button.pressed.connect(_add_tag_from_field)
+	# Enter in the field adds the tag too, so a run of tags can be typed quickly.
+	_tag_line_edit.text_submitted.connect(func(_text: String) -> void: _add_tag_from_field())
 
 	_save_button.pressed.connect(_validate_save)
 
@@ -103,12 +110,67 @@ func _set_initial_pack_data() -> void:
 	for image_texture in pack_data.curses:
 		_add_mod_manager_card(_curse_cards, _add_curse_card_button, image_texture, true)
 
+	_rebuild_tag_list()
+
 
 func _on_pack_name_changed(new_name: String) -> void:
 	if (_is_valid_file_name(new_name) or new_name == "") and not _confirm_delete.visible:
 		pack_data.title = new_name
 	else:
 		_pack_name_line_edit.text = pack_data.title
+
+
+# --- Tags ---
+
+
+func _add_tag_from_field() -> void:
+	if _confirm_delete.visible:
+		return
+
+	if add_tag(_tag_line_edit.text):
+		_tag_line_edit.text = ""
+
+
+## Adds a tag to the pack being edited. Blank tags are ignored and duplicates
+## are rejected case-insensitively, matching how PackDataLoader reads them back.
+## Returns whether the tag was added.
+func add_tag(tag: String) -> bool:
+	var clean := tag.strip_edges()
+	if clean.is_empty():
+		return false
+
+	for existing in pack_data.tags:
+		if existing.to_lower() == clean.to_lower():
+			return false
+
+	pack_data.tags.append(clean)
+	_rebuild_tag_list()
+	return true
+
+
+func remove_tag(tag: String) -> void:
+	var index := pack_data.tags.find(tag)
+	if index == -1:
+		return
+
+	pack_data.tags.remove_at(index)
+	_rebuild_tag_list()
+
+
+## One button per tag; pressing it removes that tag. Deliberately skips the
+## delete confirmation the card rows use — a mistyped tag is cheap to re-add,
+## unlike a card image the author had to pick off disk.
+func _rebuild_tag_list() -> void:
+	for child in _tag_list.get_children():
+		_tag_list.remove_child(child)
+		child.queue_free()
+
+	for tag in pack_data.tags:
+		var button := Button.new()
+		button.text = "%s  x" % tag
+		button.theme_type_variation = &"SelectableButton"
+		button.pressed.connect(remove_tag.bind(tag))
+		_tag_list.add_child(button)
 
 
 func _select_new_card(container: HBoxContainer, add_button: ModManagerCard) -> void:
@@ -201,6 +263,10 @@ func _on_confirm_delete_closing(container: HBoxContainer, card: ModManagerCard) 
 
 func _reset() -> void:
 	_pack_name_line_edit.text = ""
+	_tag_line_edit.text = ""
+	for child in _tag_list.get_children():
+		_tag_list.remove_child(child)
+		child.queue_free()
 	_clear_container(_card_backs, _add_card_back_button)
 	_clear_container(_primary_cards, _add_primary_card_button)
 	_clear_container(_secondary_cards, _add_secondary_card_button)

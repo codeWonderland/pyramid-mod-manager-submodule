@@ -183,6 +183,10 @@ func _save_mod(pack_data: PackData) -> void:
 			)
 		)
 
+	# The folder was recreated from scratch above, so clearing every tag simply
+	# leaves no metadata file behind.
+	PackDataLoader.save_tags(pack_data.folder_path, pack_data.tags)
+
 
 func _save_image(card: ImageTexture, file_path: String) -> void:
 	var image: Image = card.get_image()
