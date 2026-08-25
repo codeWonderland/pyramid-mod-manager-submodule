@@ -1,5 +1,9 @@
 class_name PackDataLoader
 
+## Optional per-pack metadata file, sitting alongside the pack's images. Packs
+## without one are still perfectly valid, they just carry no tags.
+const METADATA_FILE: String = "pack.json"
+
 
 static func load_pack_from_path(pack_path: String) -> PackData:
 	var pack_data = PackData.new()
@@ -42,6 +46,8 @@ static func load_pack_from_path(pack_path: String) -> PackData:
 				print("No idea what to do with this texture:")
 				print(file_path)
 
+	pack_data.tags = load_tags(pack_data.folder_path)
+
 	if pack_data.backs.size():
 		return pack_data
 
@@ -72,3 +78,64 @@ static func load_packs_from_folder(folder_path: String, tree: SceneTree) -> Arra
 
 static func sort_packs(a: PackData, b: PackData) -> bool:
 	return a.title < b.title
+
+
+## Reads the tag list out of a pack's metadata file. Mod data is user-supplied,
+## so every step here warns and falls back to "no tags" rather than failing the
+## pack: a broken metadata file must never stop a pack from loading.
+static func load_tags(pack_folder_path: String) -> Array[String]:
+	var tags: Array[String] = []
+	var metadata_path := pack_folder_path.path_join(METADATA_FILE)
+
+	if not FileAccess.file_exists(metadata_path):
+		return tags
+
+	var file = FileAccess.open(metadata_path, FileAccess.READ)
+	if file == null:
+		push_warning("PackDataLoader: couldn't open %s" % metadata_path)
+		return tags
+
+	# Parse through a JSON instance rather than JSON.parse_string: the static
+	# helper raises an engine-level error on malformed input, and a player's
+	# hand-edited pack.json should produce our warning, not an engine error.
+	var json := JSON.new()
+	if json.parse(file.get_as_text()) != OK:
+		push_warning(
+			(
+				"PackDataLoader: %s is not valid JSON (line %d: %s)"
+				% [metadata_path, json.get_error_line(), json.get_error_message()]
+			)
+		)
+		return tags
+
+	var parsed = json.data
+	if not (parsed is Dictionary):
+		push_warning("PackDataLoader: %s is not a JSON object" % metadata_path)
+		return tags
+
+	if not parsed.has("tags"):
+		return tags
+
+	if not (parsed["tags"] is Array):
+		push_warning('PackDataLoader: "tags" in %s is not a list' % metadata_path)
+		return tags
+
+	# Trim blanks and de-duplicate case-insensitively, but keep the capitalisation
+	# the pack author wrote so the filter list reads the way they intended.
+	var seen := {}
+	for entry in parsed["tags"]:
+		if not (entry is String):
+			continue
+
+		var tag := (entry as String).strip_edges()
+		if tag.is_empty():
+			continue
+
+		var key := tag.to_lower()
+		if seen.has(key):
+			continue
+
+		seen[key] = true
+		tags.append(tag)
+
+	return tags
