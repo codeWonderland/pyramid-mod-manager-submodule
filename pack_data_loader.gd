@@ -46,7 +46,8 @@ static func load_pack_from_path(pack_path: String) -> PackData:
 				print("No idea what to do with this texture:")
 				print(file_path)
 
-	pack_data.tags = load_tags(pack_data.folder_path)
+	pack_data.metadata = load_metadata(pack_data.folder_path)
+	pack_data.tags = tags_from_metadata(pack_data.metadata)
 
 	if pack_data.backs.size():
 		return pack_data
@@ -80,13 +81,22 @@ static func sort_packs(a: PackData, b: PackData) -> bool:
 	return a.title < b.title
 
 
-## Writes a pack's tags to its metadata file, and deletes that file when there
-## are no tags left, so a pack whose tags were all removed reads back as
-## untagged rather than keeping an empty metadata file around.
-static func save_tags(pack_folder_path: String, tags: Array[String]) -> bool:
+## Writes a pack's metadata file: `metadata` with its "tags" entry replaced by
+## `tags`. Every other field is written back untouched, so a pack record carrying
+## more than tags survives an edit. A record left with nothing in it deletes the
+## file, so a pack whose tags were all removed reads back as untagged.
+static func save_metadata(
+	pack_folder_path: String, metadata: Dictionary, tags: Array[String]
+) -> bool:
 	var metadata_path := pack_folder_path.path_join(METADATA_FILE)
 
+	var record := metadata.duplicate(true)
 	if tags.is_empty():
+		record.erase("tags")
+	else:
+		record["tags"] = tags
+
+	if record.is_empty():
 		if FileAccess.file_exists(metadata_path):
 			DirAccess.remove_absolute(metadata_path)
 		return true
@@ -101,25 +111,30 @@ static func save_tags(pack_folder_path: String, tags: Array[String]) -> bool:
 		)
 		return false
 
-	file.store_string(JSON.stringify({"tags": tags}, "\t"))
+	file.store_string(JSON.stringify(record, "\t"))
 	file.close()
 	return true
 
 
-## Reads the tag list out of a pack's metadata file. Mod data is user-supplied,
-## so every step here warns and falls back to "no tags" rather than failing the
-## pack: a broken metadata file must never stop a pack from loading.
-static func load_tags(pack_folder_path: String) -> Array[String]:
-	var tags: Array[String] = []
+## Replaces only the tags in a pack's metadata file, keeping whatever else is
+## already there.
+static func save_tags(pack_folder_path: String, tags: Array[String]) -> bool:
+	return save_metadata(pack_folder_path, load_metadata(pack_folder_path), tags)
+
+
+## Reads a pack's metadata file as a dictionary. Mod data is user-supplied, so
+## every step here warns and falls back to an empty record rather than failing
+## the pack: a broken metadata file must never stop a pack from loading.
+static func load_metadata(pack_folder_path: String) -> Dictionary:
 	var metadata_path := pack_folder_path.path_join(METADATA_FILE)
 
 	if not FileAccess.file_exists(metadata_path):
-		return tags
+		return {}
 
 	var file = FileAccess.open(metadata_path, FileAccess.READ)
 	if file == null:
 		push_warning("PackDataLoader: couldn't open %s" % metadata_path)
-		return tags
+		return {}
 
 	# Parse through a JSON instance rather than JSON.parse_string: the static
 	# helper raises an engine-level error on malformed input, and a player's
@@ -132,24 +147,35 @@ static func load_tags(pack_folder_path: String) -> Array[String]:
 				% [metadata_path, json.get_error_line(), json.get_error_message()]
 			)
 		)
-		return tags
+		return {}
 
-	var parsed = json.data
-	if not (parsed is Dictionary):
+	if not (json.data is Dictionary):
 		push_warning("PackDataLoader: %s is not a JSON object" % metadata_path)
+		return {}
+
+	return json.data
+
+
+## Reads just the tag list out of a pack's metadata file.
+static func load_tags(pack_folder_path: String) -> Array[String]:
+	return tags_from_metadata(load_metadata(pack_folder_path))
+
+
+## The cleaned tag list from a metadata record: trimmed, blanks and non-strings
+## dropped, and de-duplicated case-insensitively while keeping the capitalisation
+## the pack author wrote so the filter list reads the way they intended.
+static func tags_from_metadata(metadata: Dictionary) -> Array[String]:
+	var tags: Array[String] = []
+
+	if not metadata.has("tags"):
 		return tags
 
-	if not parsed.has("tags"):
+	if not (metadata["tags"] is Array):
+		push_warning('PackDataLoader: pack metadata "tags" is not a list')
 		return tags
 
-	if not (parsed["tags"] is Array):
-		push_warning('PackDataLoader: "tags" in %s is not a list' % metadata_path)
-		return tags
-
-	# Trim blanks and de-duplicate case-insensitively, but keep the capitalisation
-	# the pack author wrote so the filter list reads the way they intended.
 	var seen := {}
-	for entry in parsed["tags"]:
+	for entry in metadata["tags"]:
 		if not (entry is String):
 			continue
 

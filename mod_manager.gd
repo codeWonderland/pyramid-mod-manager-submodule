@@ -153,9 +153,11 @@ func _save_mod(pack_data: PackData) -> void:
 	_save_cards(pack_data.secondaries, "s", pack_data.folder_path)
 	_save_cards(pack_data.curses, "c", pack_data.folder_path)
 
-	# The folder was recreated from scratch above, so clearing every tag simply
-	# leaves no metadata file behind.
-	PackDataLoader.save_tags(pack_data.folder_path, pack_data.tags)
+	# The folder was recreated from scratch above, so write the record back from
+	# what was loaded into memory rather than from disk. That keeps fields the
+	# editor has no controls for, and clearing every tag on an otherwise empty
+	# record simply leaves no metadata file behind.
+	PackDataLoader.save_metadata(pack_data.folder_path, pack_data.metadata, pack_data.tags)
 
 
 ## Writes one numbered image per card, 1-based, so a pack with three primaries
