@@ -192,6 +192,8 @@ func _on_file_selected(
 		return
 
 	var texture: ImageTexture = ImageTexture.create_from_image(image)
+	# Keep the chosen file, so saving copies it as-is instead of re-encoding it.
+	texture.set_meta(PackDataLoader.SOURCE_META, file_path)
 
 	_add_mod_manager_card(container, add_button, texture)
 

@@ -3,6 +3,10 @@ class_name PackDataLoader
 ## Optional per-pack metadata file, sitting alongside the pack's images. Packs
 ## without one are still perfectly valid, they just carry no tags.
 const METADATA_FILE: String = "pack.json"
+## Metadata key on each card's texture: the image file it was loaded from. Saving
+## writes that file's bytes back rather than re-encoding the texture, so cards
+## that weren't touched come out byte-for-byte identical.
+const SOURCE_META: StringName = &"source_file"
 
 
 static func load_pack_from_path(pack_path: String) -> PackData:
@@ -16,7 +20,13 @@ static func load_pack_from_path(pack_path: String) -> PackData:
 	var pack_folder = DirAccess.open(pack_data.folder_path)
 
 	if pack_folder:
-		var files = pack_folder.get_files()
+		var files := pack_folder.get_files()
+		# Numeric order - p1, p2 ... p10 - not the alphabetical p1, p10, p2 the
+		# folder lists them in, so each card's place matches its number. Saving
+		# numbers cards by their place, so this is what keeps p10's image as p10.
+		var sorted := Array(files)
+		sorted.sort_custom(func(a: String, b: String) -> bool: return a.naturalnocasecmp_to(b) < 0)
+		files = PackedStringArray(sorted)
 
 		for file_path in files:
 			# only image files are actually valid
@@ -33,6 +43,7 @@ static func load_pack_from_path(pack_path: String) -> PackData:
 				continue
 
 			var texture: ImageTexture = ImageTexture.create_from_image(image)
+			texture.set_meta(SOURCE_META, pack_data.folder_path + "/" + file_path)
 
 			if file_path.begins_with("b"):
 				pack_data.backs.append(texture)
@@ -96,6 +107,11 @@ static func save_metadata(
 	else:
 		record["tags"] = tags
 
+	# Leave the file alone when nothing in it has changed, so a save that didn't
+	# touch the record doesn't show up as a change to it.
+	if FileAccess.file_exists(metadata_path) and load_metadata(pack_folder_path) == record:
+		return true
+
 	if record.is_empty():
 		if FileAccess.file_exists(metadata_path):
 			DirAccess.remove_absolute(metadata_path)
@@ -111,9 +127,25 @@ static func save_metadata(
 		)
 		return false
 
-	file.store_string(JSON.stringify(record, "\t"))
+	file.store_string(JSON.stringify(_whole_numbers(record), "\t") + "\n")
 	file.close()
 	return true
+
+
+## Godot reads every JSON number as a float and would write 22 back as 22.0, so a
+## record that went through the editor would show every count as changed. Whole
+## numbers go back to integers before writing.
+static func _whole_numbers(value):
+	if value is Dictionary:
+		var copy := {}
+		for key in value:
+			copy[key] = _whole_numbers(value[key])
+		return copy
+	if value is Array:
+		return value.map(func(item): return _whole_numbers(item))
+	if value is float and is_finite(value) and value == floor(value):
+		return int(value)
+	return value
 
 
 ## Replaces only the tags in a pack's metadata file, keeping whatever else is
