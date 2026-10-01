@@ -214,6 +214,10 @@ func _save_mod(pack_data: PackData) -> void:
 	# Write the record back from what was loaded into memory, so fields the
 	# editor has no controls for survive; clearing every tag on an otherwise
 	# empty record simply leaves no metadata file behind.
+	# Counts, challenge kinds and ids come from the pack itself. A pack with no
+	# record at all is left without one.
+	if not pack_data.metadata.is_empty() or not pack_data.tags.is_empty():
+		PackRecord.finalize(pack_data.metadata, pack_data)
 	PackDataLoader.save_metadata(pack_data.folder_path, pack_data.metadata, pack_data.tags)
 
 

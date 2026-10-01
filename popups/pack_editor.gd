@@ -7,6 +7,11 @@ enum ActionType { ADD, EDIT }
 const MOD_MANAGER_CARD: PackedScene = preload(
 	"res://source/mod-manager/popups/parts/mod_manager_card.tscn"
 )
+const CHALLENGE_ROW: PackedScene = preload(
+	"res://source/mod-manager/popups/parts/challenge_row.tscn"
+)
+## PriceOption's items, in order; "Not set" leaves the record's is_free alone.
+const PRICE_CHOICES: Array[String] = ["Not set", "Free", "Paid"]
 # Regular expression to validate the filename.
 # ^[a-zA-Z0-9 _\-'.]+$
 #
@@ -46,6 +51,13 @@ var _file_name_regex: RegEx
 @onready var _file_dialog: FileDialog = %FileDialog
 @onready var _confirm_delete: ConfirmDelete = %ConfirmDelete
 @onready var _save_button: Button = %Save
+@onready var _display_name_line_edit: LineEdit = %DisplayNameLineEdit
+@onready var _price_option: OptionButton = %PriceOption
+@onready var _estimated_time_line_edit: LineEdit = %EstimatedTimeLineEdit
+@onready var _versus_text_edit: TextEdit = %VersusTextEdit
+@onready var _coop_text_edit: TextEdit = %CoopTextEdit
+@onready var _challenge_list: VBoxContainer = %ChallengeList
+@onready var _add_challenge_button: Button = %AddChallenge
 
 
 func _ready() -> void:
@@ -76,6 +88,10 @@ func _ready() -> void:
 
 	_save_button.pressed.connect(_validate_save)
 
+	for choice in PRICE_CHOICES:
+		_price_option.add_item(choice)
+	_add_challenge_button.pressed.connect(func() -> void: _add_challenge_row({}))
+
 	# The RegEx object is compiled once for efficiency.
 	# Compile the regular expression when the script starts
 	_file_name_regex = RegEx.new()
@@ -88,8 +104,10 @@ func open() -> void:
 	_reset()
 
 	if pack_data != null:
+		_title.text = "Edit Pack"
 		_set_initial_pack_data()
 	else:
+		_title.text = "Add Pack"
 		pack_data = PackData.new()
 
 	show()
@@ -111,6 +129,7 @@ func _set_initial_pack_data() -> void:
 		_add_mod_manager_card(_curse_cards, _add_curse_card_button, image_texture, true)
 
 	_rebuild_tag_list()
+	_show_details(pack_data.metadata)
 
 
 func _on_pack_name_changed(new_name: String) -> void:
@@ -171,6 +190,72 @@ func _rebuild_tag_list() -> void:
 		button.theme_type_variation = &"SelectableButton"
 		button.pressed.connect(remove_tag.bind(tag))
 		_tag_list.add_child(button)
+
+
+# --- Details ---
+
+
+## Fills the details fields from a pack's record.
+func _show_details(record: Dictionary) -> void:
+	_display_name_line_edit.text = _text_of(record, "name")
+	var is_free = record.get("is_free")
+	_price_option.select((1 if is_free else 2) if is_free is bool else 0)
+	_estimated_time_line_edit.text = _text_of(record, "estimated_time")
+
+	var objectives = record.get("objectives")
+	objectives = objectives if objectives is Dictionary else {}
+	_versus_text_edit.text = _text_of(objectives, "versus_tertiary")
+	_coop_text_edit.text = _text_of(objectives, "co_op_rules")
+
+	var special = record.get("special_challenges")
+	if special is Dictionary and special.get("entries") is Array:
+		for entry in special["entries"]:
+			if entry is Dictionary:
+				_add_challenge_row(entry)
+
+
+## Writes the details fields back into a record. Fields left as they were don't
+## change it, so saving an untouched pack doesn't rewrite its pack.json.
+func _write_details(record: Dictionary) -> void:
+	PackRecord.set_text(record, "name", _display_name_line_edit.text)
+	match _price_option.selected:
+		1:
+			record["is_free"] = true
+		2:
+			record["is_free"] = false
+		_:
+			if record.get("is_free") is bool:
+				record["is_free"] = null
+	PackRecord.set_text(record, "estimated_time", _estimated_time_line_edit.text)
+
+	var objectives = record.get("objectives")
+	objectives = objectives if objectives is Dictionary else {}
+	PackRecord.set_text(objectives, "versus_tertiary", _versus_text_edit.text)
+	PackRecord.set_text(objectives, "co_op_rules", _coop_text_edit.text)
+	if not objectives.is_empty():
+		record["objectives"] = objectives
+
+	var entries: Array = []
+	for row in _challenge_list.get_children():
+		if row is ChallengeRow and not row.is_queued_for_deletion() and not row.is_blank():
+			entries.append(row.entry())
+	var special = record.get("special_challenges")
+	if special is Dictionary:
+		special["entries"] = entries
+	elif not entries.is_empty():
+		record["special_challenges"] = {"entries": entries}
+
+
+func _add_challenge_row(entry: Dictionary) -> void:
+	var row: ChallengeRow = CHALLENGE_ROW.instantiate()
+	row.set_entry(entry)
+	row.remove_requested.connect(row.queue_free)
+	_challenge_list.add_child(row)
+
+
+static func _text_of(record: Dictionary, key: String) -> String:
+	var value = record.get(key)
+	return value if value is String else ""
 
 
 func _select_new_card(container: HBoxContainer, add_button: ModManagerCard) -> void:
@@ -273,6 +358,14 @@ func _reset() -> void:
 	_clear_container(_primary_cards, _add_primary_card_button)
 	_clear_container(_secondary_cards, _add_secondary_card_button)
 	_clear_container(_curse_cards, _add_curse_card_button)
+	_display_name_line_edit.text = ""
+	_price_option.select(0)
+	_estimated_time_line_edit.text = ""
+	_versus_text_edit.text = ""
+	_coop_text_edit.text = ""
+	for row in _challenge_list.get_children():
+		_challenge_list.remove_child(row)
+		row.queue_free()
 
 
 func _clear_container(container: HBoxContainer, add_button: ModManagerCard) -> void:
@@ -287,6 +380,7 @@ func _validate_save() -> void:
 		return
 
 	if pack_data.title != "" and pack_data.backs.size() and pack_data.primaries.size():
+		_write_details(pack_data.metadata)
 		self.save_validated.emit(pack_data)
 
 	super._close()
