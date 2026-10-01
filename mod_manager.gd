@@ -74,6 +74,8 @@ func _edit_mod() -> void:
 	if _pack_editor.visible or _confirm_delete.visible or _selected_pack == null:
 		return
 
+	# The list only loads each pack's backs; the editor shows and saves every card.
+	PackDataLoader.load_faces(_selected_pack)
 	_pack_editor.pack_data = _selected_pack
 	_pack_editor.open()
 

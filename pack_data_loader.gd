@@ -7,9 +7,14 @@ const METADATA_FILE: String = "pack.json"
 ## writes that file's bytes back rather than re-encoding the texture, so cards
 ## that weren't touched come out byte-for-byte identical.
 const SOURCE_META: StringName = &"source_file"
+## How long load_packs_from_folder works before letting a frame draw.
+const FRAME_BUDGET_MSEC: int = 50
 
 
-static func load_pack_from_path(pack_path: String) -> PackData:
+## Loads the pack at `pack_path`, or null if it has no back. With `faces` false
+## only the backs are decoded and the fronts are left in `unloaded_faces` for
+## load_faces(), which is far quicker when listing many packs.
+static func load_pack_from_path(pack_path: String, faces: bool = true) -> PackData:
 	var pack_data = PackData.new()
 
 	pack_data.folder_path = pack_path
@@ -37,25 +42,11 @@ static func load_pack_from_path(pack_path: String) -> PackData:
 			):
 				continue
 
-			var image: Image = Image.load_from_file(pack_data.folder_path + "/" + file_path)
-			if image == null:
-				push_warning("PackDataLoader: couldn't load image %s" % file_path)
-				continue
-
-			var texture: ImageTexture = ImageTexture.create_from_image(image)
-			texture.set_meta(SOURCE_META, pack_data.folder_path + "/" + file_path)
-
-			if file_path.begins_with("b"):
-				pack_data.backs.append(texture)
-			elif file_path.begins_with("p"):
-				pack_data.primaries.append(texture)
-			elif file_path.begins_with("s"):
-				pack_data.secondaries.append(texture)
-			elif file_path.begins_with("c"):
-				pack_data.curses.append(texture)
+			var full_path: String = pack_data.folder_path + "/" + file_path
+			if faces or file_path.begins_with("b"):
+				_add_card(pack_data, full_path)
 			else:
-				print("No idea what to do with this texture:")
-				print(file_path)
+				pack_data.unloaded_faces.append(full_path)
 
 	pack_data.metadata = load_metadata(pack_data.folder_path)
 	pack_data.tags = tags_from_metadata(pack_data.metadata)
@@ -68,19 +59,69 @@ static func load_pack_from_path(pack_path: String) -> PackData:
 	return null
 
 
+## Decodes the card fronts a pack was loaded without. Safe to call on a pack that
+## already has them all.
+static func load_faces(pack_data: PackData) -> void:
+	var pending := pack_data.unloaded_faces
+	pack_data.unloaded_faces = []
+	for full_path in pending:
+		_add_card(pack_data, full_path)
+
+
+## Whether a pack has at least one primary, loaded or not.
+static func has_primaries(pack_data: PackData) -> bool:
+	if not pack_data.primaries.is_empty():
+		return true
+	for full_path in pack_data.unloaded_faces:
+		if full_path.get_file().begins_with("p"):
+			return true
+	return false
+
+
+static func _add_card(pack_data: PackData, full_path: String) -> void:
+	var file_name := full_path.get_file()
+
+	var image: Image = Image.load_from_file(full_path)
+	if image == null:
+		push_warning("PackDataLoader: couldn't load image %s" % file_name)
+		return
+
+	var texture: ImageTexture = ImageTexture.create_from_image(image)
+	texture.set_meta(SOURCE_META, full_path)
+
+	if file_name.begins_with("b"):
+		pack_data.backs.append(texture)
+	elif file_name.begins_with("p"):
+		pack_data.primaries.append(texture)
+	elif file_name.begins_with("s"):
+		pack_data.secondaries.append(texture)
+	elif file_name.begins_with("c"):
+		pack_data.curses.append(texture)
+	else:
+		print("No idea what to do with this texture:")
+		print(file_name)
+
+
+## Lists every pack in `folder_path` with only its backs loaded - call load_faces()
+## on a pack before using its fronts. Yields a frame now and then so a loading
+## animation keeps moving, but not after every pack: at 60 fps a frame per pack
+## would add two seconds of waiting for a hundred-odd packs.
 static func load_packs_from_folder(folder_path: String, tree: SceneTree) -> Array[PackData]:
 	var packs_folder = DirAccess.open(folder_path)
 	var packs: Array[PackData] = []
+	var last_yield := Time.get_ticks_msec()
 
 	if packs_folder:
 		packs_folder.list_dir_begin()
 		var pack_path = packs_folder.get_next()
 		while pack_path != "":
-			await tree.process_frame
+			if Time.get_ticks_msec() - last_yield > FRAME_BUDGET_MSEC:
+				await tree.process_frame
+				last_yield = Time.get_ticks_msec()
 
-			var pack_data = load_pack_from_path(folder_path + pack_path)
+			var pack_data = load_pack_from_path(folder_path + pack_path, false)
 
-			if pack_data != null and pack_data.backs.size() > 0 and pack_data.primaries.size() > 0:
+			if pack_data != null and pack_data.backs.size() > 0 and has_primaries(pack_data):
 				packs.append(pack_data)
 
 			pack_path = packs_folder.get_next()
