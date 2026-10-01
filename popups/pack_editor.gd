@@ -54,6 +54,9 @@ var _file_name_regex: RegEx
 @onready var _display_name_line_edit: LineEdit = %DisplayNameLineEdit
 @onready var _price_option: OptionButton = %PriceOption
 @onready var _estimated_time_line_edit: LineEdit = %EstimatedTimeLineEdit
+@onready var _store_url_line_edit: LineEdit = %StoreUrlLineEdit
+@onready var _presskit_url_line_edit: LineEdit = %PresskitUrlLineEdit
+@onready var _description_text_edit: TextEdit = %DescriptionTextEdit
 @onready var _versus_text_edit: TextEdit = %VersusTextEdit
 @onready var _coop_text_edit: TextEdit = %CoopTextEdit
 @onready var _challenge_list: VBoxContainer = %ChallengeList
@@ -201,6 +204,9 @@ func _show_details(record: Dictionary) -> void:
 	var is_free = record.get("is_free")
 	_price_option.select((1 if is_free else 2) if is_free is bool else 0)
 	_estimated_time_line_edit.text = _text_of(record, "estimated_time")
+	_store_url_line_edit.text = _text_of(record, "store_url")
+	_presskit_url_line_edit.text = _text_of(record, "presskit_url")
+	_description_text_edit.text = _text_of(record, "description")
 
 	var objectives = record.get("objectives")
 	objectives = objectives if objectives is Dictionary else {}
@@ -227,6 +233,9 @@ func _write_details(record: Dictionary) -> void:
 			if record.get("is_free") is bool:
 				record["is_free"] = null
 	PackRecord.set_text(record, "estimated_time", _estimated_time_line_edit.text)
+	PackRecord.set_text(record, "store_url", _store_url_line_edit.text)
+	PackRecord.set_text(record, "presskit_url", _presskit_url_line_edit.text)
+	PackRecord.set_text(record, "description", _description_text_edit.text)
 
 	var objectives = record.get("objectives")
 	objectives = objectives if objectives is Dictionary else {}
@@ -361,6 +370,9 @@ func _reset() -> void:
 	_display_name_line_edit.text = ""
 	_price_option.select(0)
 	_estimated_time_line_edit.text = ""
+	_store_url_line_edit.text = ""
+	_presskit_url_line_edit.text = ""
+	_description_text_edit.text = ""
 	_versus_text_edit.text = ""
 	_coop_text_edit.text = ""
 	for row in _challenge_list.get_children():

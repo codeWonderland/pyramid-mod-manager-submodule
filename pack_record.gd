@@ -25,6 +25,18 @@ static func slug(text: String) -> String:
 	return out.trim_prefix("-").trim_suffix("-")
 
 
+## A record's link, or "" unless it's a web address - links open in the player's
+## browser, so nothing else is handed to the system.
+static func web_link(record: Dictionary, key: String) -> String:
+	var value = record.get(key)
+	if not (value is String):
+		return ""
+	var url: String = value.strip_edges()
+	if url.begins_with("https://") or url.begins_with("http://"):
+		return url
+	return ""
+
+
 ## Sets a text field from what was typed, without disturbing a record that didn't
 ## change: an empty field leaves a missing or null value as it was, and only
 ## clears a value that had text.
