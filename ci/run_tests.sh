@@ -7,8 +7,8 @@
 #   This repo is consumed as a git submodule of the main game project. The UI
 #   scripts (mod_manager.gd, popups/*) depend on the parent project's autoloads
 #   and base classes, so they can't compile standalone — only the data layer
-#   (helpers.gd, pack_data.gd, pack_data_loader.gd) is self-contained. And
-#   committing addons/gut here would collide with the parent project's own copy
+#   (helpers.gd, pack_data.gd, pack_data_loader.gd, pack_record.gd) is
+#   self-contained. And committing addons/gut here would collide with the parent project's own copy
 #   (duplicate class_name GutTest) once embedded. So CI builds a throwaway
 #   project containing just the testable units plus a freshly fetched GUT.
 #
@@ -28,6 +28,7 @@ mkdir -p "$BUILD/test"
 cp "$ROOT/helpers.gd" "$BUILD/"
 cp "$ROOT/pack_data.gd" "$BUILD/"
 cp "$ROOT/pack_data_loader.gd" "$BUILD/"
+cp "$ROOT/pack_record.gd" "$BUILD/"
 cp -r "$ROOT/test/." "$BUILD/test/"
 
 cat >"$BUILD/project.godot" <<'PROJECT'

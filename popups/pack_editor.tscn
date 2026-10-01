@@ -170,6 +170,95 @@ theme_type_variation = &"SmallLabel"
 text = "Tags let players filter the draft screen. Click a tag to remove it."
 autowrap_mode = 2
 
+[node name="DetailsSection" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection"]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Details"
+
+[node name="Fields" type="GridContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection"]
+layout_mode = 2
+columns = 2
+
+[node name="DisplayNameLabel" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection/Fields"]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Game name"
+
+[node name="DisplayNameLineEdit" type="LineEdit" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection/Fields"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "As shown in the library (defaults to the pack name)"
+
+[node name="PriceLabel" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection/Fields"]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Price"
+
+[node name="PriceOption" type="OptionButton" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection/Fields"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="EstimatedTimeLabel" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection/Fields"]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Time per run"
+
+[node name="EstimatedTimeLineEdit" type="LineEdit" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection/Fields"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "e.g. 30m or 1h30m"
+
+[node name="VersusLabel" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection"]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Versus rule"
+
+[node name="VersusTextEdit" type="TextEdit" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+placeholder_text = "How players compete (e.g. Highest score at the end of the run)"
+wrap_mode = 1
+
+[node name="CoopLabel" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection"]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Co-op rules"
+
+[node name="CoopTextEdit" type="TextEdit" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+placeholder_text = "How players work together, if the game supports it"
+wrap_mode = 1
+
+[node name="ChallengesLabel" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection"]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Dev & creator challenges"
+
+[node name="ChallengeList" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="AddChallenge" type="Button" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Add Challenge"
+
+[node name="DetailsHint" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection"]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Card counts are filled in from the cards when you save."
+autowrap_mode = 2
+
 [node name="Save" type="Button" parent="VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2

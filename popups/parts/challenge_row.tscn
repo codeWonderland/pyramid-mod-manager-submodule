@@ -1,0 +1,38 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://source/mod-manager/popups/parts/challenge_row.gd" id="1_row"]
+
+[node name="ChallengeRow" type="VBoxContainer"]
+size_flags_horizontal = 3
+script = ExtResource("1_row")
+
+[node name="ChallengeText" type="LineEdit" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "The challenge (e.g. Beat the first boss without healing)"
+
+[node name="Details" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="ChallengeType" type="OptionButton" parent="Details"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Which kind of objective this challenge replaces"
+
+[node name="ContributorHandle" type="LineEdit" parent="Details"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "@handle"
+
+[node name="ContributorRole" type="LineEdit" parent="Details"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "\"Creator\" for a content creator; anything else (Lead Dev, Studio...) counts as the game's developers"
+placeholder_text = "Role (e.g. Lead Dev, Creator)"
+
+[node name="RemoveChallenge" type="Button" parent="Details"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Remove"
