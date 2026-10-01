@@ -213,6 +213,40 @@ layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "e.g. 30m or 1h30m"
 
+[node name="StoreUrlLabel" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection/Fields"]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Store page"
+
+[node name="StoreUrlLineEdit" type="LineEdit" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection/Fields"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Where to get or play it (https://...)"
+
+[node name="PresskitUrlLabel" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection/Fields"]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Press kit"
+
+[node name="PresskitUrlLineEdit" type="LineEdit" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection/Fields"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Optional (https://...)"
+
+[node name="DescriptionLabel" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection"]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Description"
+
+[node name="DescriptionTextEdit" type="TextEdit" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+placeholder_text = "What the game is, as shown in the library"
+wrap_mode = 1
+
 [node name="VersusLabel" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection"]
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
