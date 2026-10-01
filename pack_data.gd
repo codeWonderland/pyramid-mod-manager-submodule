@@ -10,6 +10,12 @@ var tags: Array[String] = []
 ## dropping them. `tags` above is the cleaned view of its "tags" entry.
 var metadata: Dictionary = {}
 var backs: Array[ImageTexture] = []
+## The card fronts. Empty until PackDataLoader.load_faces() when the pack was
+## loaded with only its backs - see unloaded_faces.
 var primaries: Array[ImageTexture] = []
 var secondaries: Array[ImageTexture] = []
 var curses: Array[ImageTexture] = []
+## Card-front image files not decoded yet, in the order they load. Decoding every
+## card of every pack is most of the time boot spends loading, and most packs are
+## never drawn from in a session, so a pack can be listed with just its backs.
+var unloaded_faces: PackedStringArray = []
