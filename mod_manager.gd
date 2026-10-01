@@ -7,6 +7,11 @@ class_name ModManager extends Control
 var _packs: Array[PackData]
 var _selected_pack: PackData = null
 
+## The game's Steam Workshop service, when this runs inside the game on Steam.
+## Looked up by path rather than named, so this still compiles where there is no
+## such service - the standalone editor, or a copy of the game outside Steam.
+var _workshop: Node = null
+
 @onready var _back_button: TextureButton = %Back
 @onready var _title_label: Label = %Title
 @onready var _mods_list: VBoxContainer = %ModsList
@@ -15,6 +20,9 @@ var _selected_pack: PackData = null
 @onready var _delete_mod_button: TextureButton = %DeleteMod
 @onready var _pack_editor: PackEditor = %PackEditor
 @onready var _confirm_delete: ConfirmDelete = %ConfirmDelete
+@onready var _browse_workshop_button: Button = %BrowseWorkshop
+@onready var _publish_mod_button: Button = %PublishMod
+@onready var _workshop_status: Label = %WorkshopStatus
 
 
 func _ready() -> void:
@@ -29,6 +37,7 @@ func _ready() -> void:
 	_delete_mod_button.pressed.connect(_delete_mod)
 
 	_pack_editor.save_validated.connect(_on_pack_saved)
+	_set_up_workshop()
 
 	_confirm_delete.set_title("Are you sure you want to delete this mod?")
 	_confirm_delete.confirm_delete.connect(_on_delete_mod_confirmed)
@@ -37,6 +46,41 @@ func _ready() -> void:
 		_back_button.pressed.connect(_leave_mod_manager)
 	else:
 		_back_button.hide()
+
+
+func _set_up_workshop() -> void:
+	var workshop := get_node_or_null("/root/SteamWorkshop")
+	if workshop == null or not workshop.call("is_available"):
+		return
+
+	_workshop = workshop
+	_browse_workshop_button.show()
+	_publish_mod_button.show()
+	_browse_workshop_button.pressed.connect(func() -> void: _workshop.call("open_workshop"))
+	_publish_mod_button.pressed.connect(_publish_mod)
+	_workshop.connect("publish_progress", _show_workshop_status)
+	_workshop.connect("publish_finished", _on_publish_finished)
+
+
+func _publish_mod() -> void:
+	if _pack_editor.visible or _confirm_delete.visible or _workshop.call("is_publishing"):
+		return
+	if _selected_pack == null:
+		_show_workshop_status("Select a pack to publish first.")
+		return
+
+	_publish_mod_button.disabled = true
+	_workshop.call("publish", _selected_pack)
+
+
+func _show_workshop_status(message: String) -> void:
+	_workshop_status.text = message
+	_workshop_status.show()
+
+
+func _on_publish_finished(_succeeded: bool, message: String) -> void:
+	_publish_mod_button.disabled = false
+	_show_workshop_status(message)
 
 
 func _build_packs() -> void:
