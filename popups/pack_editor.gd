@@ -103,6 +103,16 @@ func _ready() -> void:
 		print("Error compiling regex: ", error)
 
 
+## Fills most of the window, so the details below the cards have room to be
+## seen. PopupContainer sizes to the window and then scales down to the 1920x1080
+## reference, which shrinks the editor twice on any smaller window.
+func _resize() -> void:
+	super._resize()
+	var screen_size := get_viewport().get_visible_rect().size
+	size = screen_size / scale * 0.8
+	position = screen_size / 2 - size * scale / 2
+
+
 func open() -> void:
 	_reset()
 
