@@ -318,4 +318,10 @@ func _leave_mod_manager() -> void:
 	if _pack_editor.visible or _confirm_delete.visible:
 		return
 
-	get_tree().change_scene_to_packed(scene_to_return_to)
+	# The game fades between scenes; looked up by path, like the Workshop, so this
+	# still works where there's no such service (the standalone editor).
+	var transition := get_node_or_null("/root/SceneTransition")
+	if transition != null:
+		transition.call("change_scene_to_packed", scene_to_return_to)
+	else:
+		get_tree().change_scene_to_packed(scene_to_return_to)
