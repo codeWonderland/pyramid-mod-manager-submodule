@@ -6,6 +6,9 @@ class_name ModManager extends Control
 
 var _packs: Array[PackData]
 var _selected_pack: PackData = null
+# Pack buttons toggle as one group, so the selected pack stays lit while an
+# action (edit, publish, delete) is picked.
+var _pack_group: ButtonGroup = ButtonGroup.new()
 
 ## The game's Steam Workshop service, when this runs inside the game on Steam.
 ## Looked up by path rather than named, so this still compiles where there is no
@@ -90,6 +93,9 @@ func _build_packs() -> void:
 		pack_button.pressed.connect(_select_pack.bind(pack_data))
 		pack_button.size_flags_horizontal = SIZE_EXPAND_FILL
 		pack_button.theme_type_variation = &"SelectableButton"
+		pack_button.toggle_mode = true
+		pack_button.button_group = _pack_group
+		pack_button.button_pressed = pack_data == _selected_pack
 		_mods_list.add_child(pack_button)
 
 
