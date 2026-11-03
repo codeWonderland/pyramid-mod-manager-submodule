@@ -25,6 +25,7 @@ var _workshop: Node = null
 @onready var _confirm_delete: ConfirmDelete = %ConfirmDelete
 @onready var _browse_workshop_button: Button = %BrowseWorkshop
 @onready var _publish_mod_button: Button = %PublishMod
+@onready var _import_workshop_button: Button = %ImportWorkshop
 @onready var _workshop_status: Label = %WorkshopStatus
 
 
@@ -59,8 +60,10 @@ func _set_up_workshop() -> void:
 	_workshop = workshop
 	_browse_workshop_button.show()
 	_publish_mod_button.show()
+	_import_workshop_button.show()
 	_browse_workshop_button.pressed.connect(func() -> void: _workshop.call("open_workshop"))
 	_publish_mod_button.pressed.connect(_publish_mod)
+	_import_workshop_button.pressed.connect(_import_own_packs)
 	_workshop.connect("publish_progress", _show_workshop_status)
 	_workshop.connect("publish_finished", _on_publish_finished)
 
@@ -84,6 +87,33 @@ func _show_workshop_status(message: String) -> void:
 func _on_publish_finished(_succeeded: bool, message: String) -> void:
 	_publish_mod_button.disabled = false
 	_show_workshop_status(message)
+	_update_publish_button()
+
+
+## Publishing a pack that is already on the Workshop updates it, so say so.
+func _update_publish_button() -> void:
+	if _workshop == null:
+		return
+	var published: bool = _selected_pack != null and _workshop.call("is_published", _selected_pack)
+	_publish_mod_button.text = "Update on Workshop" if published else "Publish"
+
+
+## Copies the player's own Workshop packs that have no local copy back here, to
+## be edited and updated.
+func _import_own_packs() -> void:
+	if _pack_editor.visible or _confirm_delete.visible or _workshop.call("is_publishing"):
+		return
+	var copied: int = _workshop.call("import_own_packs", mods_path)
+	if copied == 0:
+		_show_workshop_status("All your Workshop packs are already here.")
+		return
+	_show_workshop_status(
+		"Copied %d of your Workshop pack%s here." % [copied, "" if copied == 1 else "s"]
+	)
+	_packs = await PackDataLoader.load_packs_from_folder(mods_path, get_tree())
+	_packs.sort_custom(PackDataLoader.sort_packs)
+	_clear_packs()
+	_build_packs()
 
 
 func _build_packs() -> void:
@@ -110,6 +140,7 @@ func _select_pack(pack_data: PackData) -> void:
 		return
 
 	_selected_pack = pack_data
+	_update_publish_button()
 
 
 func _add_mod() -> void:
@@ -153,6 +184,7 @@ func _on_delete_mod_confirmed() -> void:
 			mod.queue_free()
 
 	_selected_pack = null
+	_update_publish_button()
 
 
 func _on_pack_saved(pack_data: PackData) -> void:
@@ -184,6 +216,7 @@ func _on_pack_saved(pack_data: PackData) -> void:
 
 	_clear_packs()
 	_build_packs()
+	_update_publish_button()
 
 
 func _save_mod(pack_data: PackData) -> void:
