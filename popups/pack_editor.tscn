@@ -58,7 +58,8 @@ layout_mode = 2
 [node name="Label" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer2"]
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
-text = "Card Backs"
+text = "Card Backs (up to 3, in order): default and primary, secondary, curse"
+autowrap_mode = 3
 
 [node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer/VBoxContainer2"]
 custom_minimum_size = Vector2(0, 150)

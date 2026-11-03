@@ -133,6 +133,7 @@ func open() -> void:
 		_title.text = "Add Pack"
 		pack_data = PackData.new()
 
+	_update_back_slots()
 	show()
 
 
@@ -316,6 +317,8 @@ func _on_files_selected(file_paths: PackedStringArray) -> void:
 
 	var ordered := Array(file_paths)
 	ordered.sort_custom(func(a: String, b: String) -> bool: return a.naturalnocasecmp_to(b) < 0)
+	if _picking_container == _card_backs:
+		ordered = ordered.slice(0, maxi(PackData.MAX_BACKS - pack_data.backs.size(), 0))
 	for file_path in ordered:
 		_add_card_from_file(file_path, _picking_container, _picking_add_button)
 
@@ -351,6 +354,7 @@ func _add_mod_manager_card(
 	container.add_child(add_button)
 
 	if initial_load:
+		_update_back_slots()
 		return
 
 	match container:
@@ -362,6 +366,13 @@ func _add_mod_manager_card(
 			pack_data.secondaries.append(new_texture)
 		_curse_cards:
 			pack_data.curses.append(new_texture)
+	_update_back_slots()
+
+
+## A pack has up to three backs - default and primary, secondary, curse - so the
+## add button goes once all three are there.
+func _update_back_slots() -> void:
+	_add_card_back_button.visible = pack_data == null or pack_data.backs.size() < PackData.MAX_BACKS
 
 
 func _on_card_pressed(container: HBoxContainer, card: ModManagerCard) -> void:
@@ -393,6 +404,7 @@ func _on_delete_confirmed(container: HBoxContainer, card: ModManagerCard) -> voi
 			pack_data.curses.remove_at(index)
 
 	container.remove_child(card)
+	_update_back_slots()
 
 
 func _on_confirm_delete_closing(container: HBoxContainer, card: ModManagerCard) -> void:
