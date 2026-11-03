@@ -283,7 +283,7 @@ wrap_mode = 1
 [node name="ChallengesLabel" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection"]
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
-text = "Dev & creator challenges"
+text = "Creator challenges"
 
 [node name="ChallengeList" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer/DetailsSection"]
 unique_name_in_owner = true

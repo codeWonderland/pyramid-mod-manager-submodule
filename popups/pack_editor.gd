@@ -249,7 +249,7 @@ func _show_details(record: Dictionary) -> void:
 	var special = record.get("special_challenges")
 	if special is Dictionary and special.get("entries") is Array:
 		for entry in special["entries"]:
-			if entry is Dictionary:
+			if entry is Dictionary and not PackRecord.is_developer_challenge(entry):
 				_add_challenge_row(entry)
 
 
