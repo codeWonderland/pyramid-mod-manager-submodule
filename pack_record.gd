@@ -6,8 +6,9 @@ class_name PackRecord
 ## is worked out here rather than typed, and can't drift from the cards.
 
 const CHALLENGE_TYPES: Array[String] = ["primary", "secondary", "curse"]
-## The contributor role that marks a content creator's challenge; any other role
-## is the game's developers.
+## The contributor role of a special challenge. Special challenges are content
+## creators' - developer challenges are no longer part of packs, and saving drops
+## any whose contributor has another role.
 const CREATOR_ROLE: String = "Creator"
 
 
@@ -51,8 +52,9 @@ static func set_text(record: Dictionary, key: String, text: String) -> void:
 
 
 ## Fills in what the record says about the pack's own cards and challenges:
-## the card counts, whether it has developer and creator challenges, its id, and
-## an id for each challenge that lacks one. Everything else is left as it is.
+## the card counts, whether it has creator challenges, its id, and an id for each
+## challenge that lacks one. Developer challenges are dropped. Everything else is
+## left as it is.
 static func finalize(record: Dictionary, pack: PackData) -> Dictionary:
 	if not (record.get("id") is String and not record["id"].is_empty()):
 		var named = record.get("name")
@@ -67,31 +69,44 @@ static func finalize(record: Dictionary, pack: PackData) -> Dictionary:
 	objectives["curse_count"] = pack.curses.size()
 
 	var special = record.get("special_challenges")
+	if special is Dictionary:
+		special.erase("developer_available")
 	if special is Dictionary and special.get("entries") is Array:
+		special["entries"] = special["entries"].filter(
+			func(entry) -> bool: return not is_developer_challenge(entry)
+		)
 		var used := {}
 		for entry in special["entries"]:
 			if entry is Dictionary and entry.get("id") is String:
 				used[entry["id"]] = true
 
 		var has_creator := false
-		var has_developer := false
 		for entry in special["entries"]:
 			if not (entry is Dictionary):
 				continue
 			if not (entry.get("id") is String and not entry["id"].is_empty()):
 				entry["id"] = _free_challenge_id(record["id"], used)
-			var contributor = entry.get("contributor")
-			var role = contributor.get("role") if contributor is Dictionary else null
-			if role is String and not role.is_empty():
-				if role == CREATOR_ROLE:
-					has_creator = true
-				else:
-					has_developer = true
+			if _role_of(entry) == CREATOR_ROLE:
+				has_creator = true
 
 		special["creator_available"] = has_creator
-		special["developer_available"] = has_developer
 
 	return record
+
+
+## Whether a challenge entry is a developer's: its contributor has a role, and
+## it isn't the creator role.
+static func is_developer_challenge(entry) -> bool:
+	if not (entry is Dictionary):
+		return false
+	var role := _role_of(entry)
+	return not role.is_empty() and role != CREATOR_ROLE
+
+
+static func _role_of(entry: Dictionary) -> String:
+	var contributor = entry.get("contributor")
+	var role = contributor.get("role") if contributor is Dictionary else null
+	return role if role is String else ""
 
 
 static func _free_challenge_id(record_id: String, used: Dictionary) -> String:
