@@ -77,9 +77,10 @@ text = "Mod Manager"
 [node name="Body" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_constants/separation = 16
 
 [node name="Controls" type="Control" parent="MarginContainer/VBoxContainer/Body"]
-custom_minimum_size = Vector2(0, 50)
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 
 [node name="AddMod" type="TextureButton" parent="MarginContainer/VBoxContainer/Body/Controls"]
