@@ -35,6 +35,14 @@ layout_mode = 2
 placeholder_text = "Enter Pack Name"
 emoji_menu_enabled = false
 
+[node name="PackNameHint" type="Label" parent="VBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Pack names can only use letters, numbers, spaces and - _ ' . since they name the pack's folder. Put the full title in Game name below."
+autowrap_mode = 3
+
 [node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
 custom_minimum_size = Vector2(0, 300)
 layout_mode = 2
@@ -307,9 +315,9 @@ texture_normal = ExtResource("1_yqagw")
 
 [node name="FileDialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
-title = "Open a File"
+title = "Open Card Images"
 ok_button_text = "Select"
-file_mode = 0
+file_mode = 1
 access = 2
 filters = PackedStringArray("*.png,*.jpg,*.jpeg;Image Files;image/png,image/jpeg")
 use_native_dialog = true
