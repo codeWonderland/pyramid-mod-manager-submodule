@@ -208,8 +208,9 @@ static func load_categories(path: String) -> Array[Dictionary]:
 	var json := JSON.new()
 	var parsed := json.parse(FileAccess.get_file_as_string(path)) == OK
 	var data = json.data if parsed else null
+	# No warning: the pack editor already says when there are no categories, and
+	# the game's own loader reports a broken file.
 	if not (data is Dictionary and data.get("categories") is Array):
-		push_warning("PackDataLoader: %s has no categories list" % path)
 		return categories
 	for entry in data["categories"]:
 		if not (entry is Dictionary and entry.get("name") is String):
