@@ -151,32 +151,19 @@ layout_mode = 2
 [node name="Label" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/TagsSection"]
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
-text = "Tags"
-
-[node name="TagEntry" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer/TagsSection"]
-layout_mode = 2
-
-[node name="TagLineEdit" type="LineEdit" parent="VBoxContainer/ScrollContainer/VBoxContainer/TagsSection/TagEntry"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-placeholder_text = "Add a tag (e.g. Roguelike)"
-max_length = 40
-
-[node name="AddTag" type="Button" parent="VBoxContainer/ScrollContainer/VBoxContainer/TagsSection/TagEntry"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Add Tag"
+text = "Categories"
 
 [node name="TagList" type="HFlowContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer/TagsSection"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
 
 [node name="TagHint" type="Label" parent="VBoxContainer/ScrollContainer/VBoxContainer/TagsSection"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
-text = "Tags let players filter the draft screen. Click a tag to remove it."
+text = "Tick the categories that fit this game. Players filter the draft by them."
 autowrap_mode = 2
 
 [node name="DetailsSection" type="VBoxContainer" parent="VBoxContainer/ScrollContainer/VBoxContainer"]

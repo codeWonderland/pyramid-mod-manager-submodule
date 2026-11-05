@@ -12,6 +12,8 @@ const CHALLENGE_ROW: PackedScene = preload(
 )
 ## PriceOption's items, in order; "Not set" leaves the record's is_free alone.
 const PRICE_CHOICES: Array[String] = ["Not set", "Free", "Paid"]
+## The category packs don't pick: the game applies it to Workshop packs.
+const AUTOMATIC_CATEGORY_ID: String = "workshop-mods"
 # Regular expression to validate the filename.
 # ^[a-zA-Z0-9 _\-'.]+$
 #
@@ -35,6 +37,10 @@ const FILENAME_DISALLOWED_PATTERN = "[^a-zA-Z0-9\\s_\\-'.]"
 
 var action_type: ActionType = ActionType.ADD
 var pack_data: PackData = null
+## The official categories offered as tags, as {id, name, description} - see
+## PackDataLoader.load_categories(). Set by the mod manager before opening.
+var categories: Array[Dictionary] = []
+
 var _file_name_regex: RegEx
 var _file_name_disallowed_regex: RegEx
 # The card row the file dialog is adding to while it's open.
@@ -52,9 +58,8 @@ var _picking_add_button: ModManagerCard = null
 @onready var _add_secondary_card_button: ModManagerCard = %AddSecondaryCard
 @onready var _curse_cards: HBoxContainer = %CurseCards
 @onready var _add_curse_card_button: ModManagerCard = %AddCurseCard
-@onready var _tag_line_edit: LineEdit = %TagLineEdit
-@onready var _add_tag_button: Button = %AddTag
 @onready var _tag_list: HFlowContainer = %TagList
+@onready var _tag_hint: Label = %TagHint
 @onready var _file_dialog: FileDialog = %FileDialog
 @onready var _confirm_delete: ConfirmDelete = %ConfirmDelete
 @onready var _save_button: Button = %Save
@@ -93,10 +98,6 @@ func _ready() -> void:
 		_select_new_card.bind(_curse_cards, _add_curse_card_button)
 	)
 
-	_add_tag_button.pressed.connect(_add_tag_from_field)
-	# Enter in the field adds the tag too, so a run of tags can be typed quickly.
-	_tag_line_edit.text_submitted.connect(func(_text: String) -> void: _add_tag_from_field())
-
 	_save_button.pressed.connect(_validate_save)
 
 	for choice in PRICE_CHOICES:
@@ -132,6 +133,7 @@ func open() -> void:
 	else:
 		_title.text = "Add Pack"
 		pack_data = PackData.new()
+		_rebuild_tag_list()
 
 	_update_back_slots()
 	show()
@@ -178,14 +180,6 @@ func _on_pack_name_changed(new_name: String) -> void:
 # --- Tags ---
 
 
-func _add_tag_from_field() -> void:
-	if _confirm_delete.visible:
-		return
-
-	if add_tag(_tag_line_edit.text):
-		_tag_line_edit.text = ""
-
-
 ## Adds a tag to the pack being edited. Blank tags are ignored and duplicates
 ## are rejected case-insensitively, matching how PackDataLoader reads them back.
 ## Returns whether the tag was added.
@@ -212,20 +206,61 @@ func remove_tag(tag: String) -> void:
 	_rebuild_tag_list()
 
 
-## One button per tag; pressing it removes that tag. Deliberately skips the
-## delete confirmation the card rows use — a mistyped tag is cheap to re-add,
-## unlike a card image the author had to pick off disk.
+## One toggle per official category, ticked when the pack has it, so nobody
+## has to remember or spell a tag - each says what it means on hover. A tag the
+## pack has that isn't a category (from before there were categories) is shown
+## ticked after them, so it isn't lost; unticking removes it.
 func _rebuild_tag_list() -> void:
 	for child in _tag_list.get_children():
 		_tag_list.remove_child(child)
 		child.queue_free()
 
+	var shown := {}
+	for category in categories:
+		var category_name: String = category["name"]
+		shown[category_name.to_lower()] = true
+		# The game gives every Steam Workshop pack this one itself.
+		if category.get("id", "") == AUTOMATIC_CATEGORY_ID:
+			continue
+		_add_tag_toggle(category_name, category.get("description", ""))
 	for tag in pack_data.tags:
-		var button := Button.new()
-		button.text = "%s  x" % tag
-		button.theme_type_variation = &"SelectableButton"
-		button.pressed.connect(remove_tag.bind(tag))
-		_tag_list.add_child(button)
+		if not shown.has(tag.to_lower()):
+			_add_tag_toggle(tag, "Not one of the official categories")
+
+	_tag_hint.text = (
+		"Tick the categories that fit this game. Players filter the draft by them."
+		if not categories.is_empty()
+		else "The official categories haven't been downloaded yet."
+	)
+
+
+func _add_tag_toggle(tag: String, description: String) -> void:
+	var toggle := Button.new()
+	toggle.text = tag
+	toggle.tooltip_text = description
+	toggle.toggle_mode = true
+	toggle.theme_type_variation = &"SelectableButton"
+	toggle.set_pressed_no_signal(_has_tag(tag))
+	toggle.toggled.connect(_set_tag.bind(tag))
+	_tag_list.add_child(toggle)
+
+
+func _has_tag(tag: String) -> bool:
+	return pack_data.tags.any(
+		func(existing: String) -> bool: return existing.nocasecmp_to(tag) == 0
+	)
+
+
+## Ticks or unticks a tag without rebuilding the list it was clicked in.
+func _set_tag(on: bool, tag: String) -> void:
+	if _confirm_delete.visible:
+		return
+	if on and not _has_tag(tag):
+		pack_data.tags.append(tag)
+	elif not on:
+		for existing in pack_data.tags.duplicate():
+			if existing.nocasecmp_to(tag) == 0:
+				pack_data.tags.erase(existing)
 
 
 # --- Details ---
@@ -415,7 +450,6 @@ func _on_confirm_delete_closing(container: HBoxContainer, card: ModManagerCard) 
 func _reset() -> void:
 	_pack_name_line_edit.text = ""
 	_pack_name_hint.hide()
-	_tag_line_edit.text = ""
 	for child in _tag_list.get_children():
 		_tag_list.remove_child(child)
 		child.queue_free()
