@@ -20,6 +20,7 @@ grow_vertical = 2
 script = ExtResource("1_at8ec")
 title = "Mod Manager"
 mods_path = "user://mods/local/PACKS/"
+categories_path = "user://mods/pyramid-mods-main/categories.json"
 scene_to_return_to = ExtResource("2_uwe2b")
 
 [node name="Background" type="TextureRect" parent="."]

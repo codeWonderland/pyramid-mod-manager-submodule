@@ -198,6 +198,39 @@ static func save_tags(pack_folder_path: String, tags: Array[String]) -> bool:
 ## Reads a pack's metadata file as a dictionary. Mod data is user-supplied, so
 ## every step here warns and falls back to an empty record rather than failing
 ## the pack: a broken metadata file must never stop a pack from loading.
+## The official categories from a categories.json, as {id, name, description}, in
+## the file's order. Mod data, so a missing or broken file is just no categories,
+## and an entry without a name is skipped.
+static func load_categories(path: String) -> Array[Dictionary]:
+	var categories: Array[Dictionary] = []
+	if not FileAccess.file_exists(path):
+		return categories
+	var json := JSON.new()
+	var parsed := json.parse(FileAccess.get_file_as_string(path)) == OK
+	var data = json.data if parsed else null
+	if not (data is Dictionary and data.get("categories") is Array):
+		push_warning("PackDataLoader: %s has no categories list" % path)
+		return categories
+	for entry in data["categories"]:
+		if not (entry is Dictionary and entry.get("name") is String):
+			continue
+		if entry["name"].strip_edges().is_empty():
+			continue
+		var description = entry.get("description")
+		var id = entry.get("id")
+		(
+			categories
+			. append(
+				{
+					"id": id if id is String else "",
+					"name": entry["name"],
+					"description": description if description is String else "",
+				}
+			)
+		)
+	return categories
+
+
 static func load_metadata(pack_folder_path: String) -> Dictionary:
 	var metadata_path := pack_folder_path.path_join(METADATA_FILE)
 

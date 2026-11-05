@@ -3,6 +3,8 @@ class_name ModManager extends Control
 @export var title: String
 @export var mods_path: String
 @export var scene_to_return_to: PackedScene
+## The official categories.json, offered as tags in the pack editor.
+@export var categories_path: String
 
 var _packs: Array[PackData]
 var _selected_pack: PackData = null
@@ -32,6 +34,7 @@ var _workshop: Node = null
 func _ready() -> void:
 	_title_label.text = title
 
+	_pack_editor.categories = PackDataLoader.load_categories(categories_path)
 	_packs = await PackDataLoader.load_packs_from_folder(mods_path, get_tree())
 	_packs.sort_custom(PackDataLoader.sort_packs)
 	_build_packs()
